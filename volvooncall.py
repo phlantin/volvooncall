@@ -10,6 +10,16 @@ import re
 from requests import Session, RequestException
 from requests.compat import urljoin
 
+# These two lines enable debugging at httplib level (requests->urllib3->http.client)
+# You will see the REQUEST, including HEADERS and DATA, and RESPONSE with HEADERS but without DATA.
+# The only thing missing will be the response.body which is not logged.
+try:
+    import http.client as http_client
+except ImportError:
+    import requests.packages.urllib3.connectionpool as http_client
+http_client.HTTPConnection.debuglevel = 1
+
+
 __version__ = '0.4.1'
 
 _LOGGER = logging.getLogger(__name__)
@@ -264,6 +274,9 @@ def main():
         logging.basicConfig(level=logging.INFO)
     elif '-vv' in argv:
         logging.basicConfig(level=logging.DEBUG)
+        requests_log = logging.getLogger("requests.packages.urllib3")
+        requests_log.setLevel(logging.DEBUG)
+        requests_log.propagate = True
     else:
         logging.basicConfig(level=logging.ERROR)
 
